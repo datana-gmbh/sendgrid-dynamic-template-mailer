@@ -1,5 +1,5 @@
 {
-    "name": "symfony/sendgrid-dynamic-template-mailer",
+    "name": "datana-gmbh/sendgrid-dynamic-template-mailer",
     "type": "symfony-bridge",
     "description": "Symfony Sendgrid Mailer Bridge for Dynamic Templates",
     "keywords": [],
