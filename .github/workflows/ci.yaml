@@ -1,0 +1,103 @@
+name: "PHP"
+
+on:
+    schedule:
+        -   cron:  '0 5 * * *'
+    pull_request:
+    push:
+        branches:
+            - "master"
+
+env:
+    REQUIRED_PHP_EXTENSIONS: "ctype, filter, hash, iconv, json"
+
+jobs:
+    coding-standards:
+        name: "Coding Standards"
+
+        runs-on: "ubuntu-latest"
+
+        strategy:
+            matrix:
+                php-version:
+                    - "8.0"
+
+        steps:
+            - name: "Checkout"
+              uses: "actions/checkout@v2"
+
+            - name: "Install PHP with extensions"
+              uses: "shivammathur/setup-php@v2"
+              with:
+                  coverage: "none"
+                  extensions: "${{ env.REQUIRED_PHP_EXTENSIONS }}"
+                  php-version: "${{ matrix.php-version }}"
+
+            - name: "Validate composer.json"
+              run: "composer validate"
+
+            - name: "Install dependencies with composer"
+              uses: "ramsey/composer-install@1.3.0"
+
+            - name: "Composer normalize"
+              run: "composer normalize"
+
+            - name: "Check code style"
+              run: "composer cs-check"
+
+    static-code-analysis:
+        name: "Static Code Analysis"
+
+        runs-on: "ubuntu-latest"
+
+        strategy:
+            matrix:
+                php-version:
+                    - "8.0"
+
+        steps:
+            - name: "Checkout"
+              uses: "actions/checkout@v2"
+
+            - name: "Install PHP with extensions"
+              uses: "shivammathur/setup-php@v2"
+              with:
+                  coverage: "none"
+                  extensions: "${{ env.REQUIRED_PHP_EXTENSIONS }}"
+                  php-version: "${{ matrix.php-version }}"
+
+            - name: "Install dependencies with composer"
+              uses: "ramsey/composer-install@1.3.0"
+
+            - name: "Static code analysis"
+              run: "composer phpstan"
+
+    tests:
+        name: "Tests"
+
+        runs-on: "ubuntu-latest"
+
+        strategy:
+            matrix:
+                php-version:
+                    - "8.0"
+
+        steps:
+            - name: "Checkout"
+              uses: "actions/checkout@v2"
+
+            - name: "Install PHP with extensions"
+              uses: "shivammathur/setup-php@v2"
+              with:
+                coverage: "pcov"
+                extensions: "${{ env.REQUIRED_PHP_EXTENSIONS }}"
+                php-version: "${{ matrix.php-version }}"
+
+            - name: "Install dependencies with composer"
+              uses: "ramsey/composer-install@1.3.0"
+
+            - name: "Run unit tests"
+              run: "vendor/bin/phpunit --configuration=phpunit.xml.dist --coverage-clover=.build/logs/clover.xml"
+
+            - name: "Send code coverage report to Codecov.io"
+              run: "bash <(curl -s https://codecov.io/bash)"
